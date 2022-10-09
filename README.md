@@ -39,8 +39,8 @@ python train.py --dw False --decoupled True
 
   Evaluation results on the clustering task:
 
-<img src="cluster_performance.png" width="100%" height="100%">
+<img src="./cluster_performance.png" style="zoom:80%;" />
 
 Evaluation results on the link prediction task:
 
-<img src="./link_performance.png" alt="image-20221007092430149" style="zoom:80%;" />
+<img src="./link_performance.png" style="zoom:80%;" />
