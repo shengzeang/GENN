@@ -32,7 +32,7 @@ python train.py
 
   Evaluation results on the clustering task:
 
-<img src="cluster_performance.png" width="100%" height="100%">
+<img src="./cluster_performance.png" style="zoom:80%;" />
 
 Evaluation results on the link prediction task:
 
