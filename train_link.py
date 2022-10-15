@@ -1,14 +1,9 @@
 from __future__ import print_function, division
-import random
 import numpy as np
-from sklearn.cluster import KMeans, SpectralClustering
-from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.cluster import KMeans
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.parameter import Parameter
 from torch.optim import Adam
-from tqdm import tqdm
 from utils import *
 from model import *
 from deepwalk import *
@@ -19,29 +14,27 @@ set_seed(42)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=200, help='Number of epochs to train.')
-parser.add_argument('--lr', type=float, default=5e-3, help='Initial learning rate.')
+parser.add_argument('--lr', type=float, default=1e-3, help='Initial learning rate.')
+parser.add_argument('--weight_decay', type=float, default=5e-6, help='the value of weight decay.')
 parser.add_argument('--embedDim', type=int, default=64, help='Dim of embedding.')
 parser.add_argument('--hiddenDim', type=int, default=256, help='Dim of hidden layer.')
 parser.add_argument('--dataset', type=str, default='cora', help='type of dataset.')
-parser.add_argument('--decoupled', type=bool, default=False, help='decoupled or not.')
+parser.add_argument('--simplified', action='store_true', help='disentangled or not.')
+parser.add_argument('--device', type=int, default=0, help='train on which gpu.')
 args = parser.parse_args()
 
-if args.dataset == 'cora':
-    n_input, n_z, n_clusters, name, lr = 1433, args.embedDim, 7, 'cora', args.lr
-if args.dataset == 'citeseer':
-    n_input, n_z, n_clusters, name, lr = 3703, args.embedDim, 6, 'citeseer', args.lr
-if args.dataset == 'wiki':
-    n_input, n_z, n_clusters, name, lr = 4973, args.embedDim, 17, 'wiki', args.lr
-if args.dataset == 'pubmed':
-    n_input, n_z, n_clusters, name, lr = 500, args.embedDim, 3, 'pubmed', args.lr
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-window_size, walk_len, n_walks = 5, 10, 10
+device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")
 
 if args.dataset == 'wiki':
     adj, data, y, graph = load_wiki()
 else:
     adj, data, _, _, _, _, y, graph = load_data(args.dataset)
+
+n_input = data.shape[1]
+n_clusters = (y.max() + 1).item()
+
+window_size, walk_len, n_walks = 5, 10, 10
+embed_dw = deepwalk_train(graph, window_size, walk_len, n_walks, args.embedDim).to(device)
 
 adj_orig = adj
 adj_orig = adj_orig - \
@@ -52,14 +45,12 @@ adj_orig.eliminate_zeros()
 adj_train, _, _, _, test_edges, test_edges_false = mask_test_edges(adj)
 adj = adj_train
 
-if args.decoupled:
-    model = DNN(args.hiddenDim, n_input=n_input*3, n_z=n_z, dropout=0.).to(device)
+if args.simplified:
+    model = DNN(args.hiddenDim, n_input=n_input*3, n_z=args.embedDim).to(device)
 else:
-    model = GENN(args.hiddenDim, n_input=n_input, n_z=n_z).to(device)
+    model = GENN(args.hiddenDim, n_input=n_input, n_z=args.embedDim).to(device)
 data = data.to(device)
-optimizer = Adam(model.parameters(), lr=lr, weight_decay=5e-6)
-
-embed_dw = deepwalk_train(graph, window_size, walk_len, n_walks, n_z).to(device)
+optimizer = Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
 # normalized matrix
 adj = adj + sp.eye(adj.shape[0])
@@ -71,7 +62,7 @@ adj_2 = torch.mm(adj_1, adj_1)
 adj_3 = torch.mm(adj_2, adj_1)
 adj_4 = torch.mm(adj_3, adj_1)
 
-if args.decoupled:
+if args.simplified:
     input_feature = torch.cat((data, torch.mm(adj, data), torch.mm(adj_2.to(device), data)), dim=1).to(device)
 
 kmeans = KMeans(n_clusters=n_clusters, n_init=20)
@@ -82,7 +73,7 @@ topology_s = embedding2similarity(embed_dw)
 gcn_sc = None
 sim_loss_list = []
 for epoch in range(400 + 1):
-    if args.decoupled:
+    if args.simplified:
         embed = model(input_feature)
     else:
         embed = model(data, adj)
@@ -106,8 +97,7 @@ for epoch in range(400 + 1):
     fs_loss = F.kl_div(t_matrix(embed).log(), feature_matrix, reduction='batchmean')
     ts_loss = F.mse_loss(gcn_sc, topology_s)
 
-    loss = 1 * fs_loss + 1 * ts_loss + 0.01 * min_dist_loss + 0.001 * max_dist_loss
-    print(loss.item())
+    loss = 1 * fs_loss + 1 * ts_loss + 0.01 * (min_dist_loss + 0.1 * max_dist_loss)
 
     optimizer.zero_grad()
     loss.backward()

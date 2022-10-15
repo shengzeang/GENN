@@ -1,6 +1,6 @@
-# GENN, Graph-Enforced Neural Networks for Attributed Graph Clustering
+# GENN, Graph-Enforced Neural Network for Attributed Graph Clustering
 
-This repository is the official implementation of GENN. 
+This repository contains the official implementation of GENN. 
 
 
 ## Requirements
@@ -17,21 +17,14 @@ pip install -r requirements.txt
 To train GENN-Augmented:
 
 ```
-python train.py --dw True --decoupled False
+python train.py --augmented
 ```
 
 To train GENN:
 
 ```
-python train.py --dw False --decoupled False
+python train.py
 ```
-
-To train GENN-Simplified:
-
-```
-python train.py --dw False --decoupled True
-```
-
 
 
 
@@ -43,4 +36,4 @@ python train.py --dw False --decoupled True
 
 Evaluation results on the link prediction task:
 
-<img src="./link_performance.png" alt="image-20221007092430149" style="zoom:80%;" />
+<img src="./link_performance.png" style="zoom:80%;" />

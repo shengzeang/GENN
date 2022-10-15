@@ -39,7 +39,7 @@ class GENN(nn.Module):
 
 class DNN(nn.Module):
 
-    def __init__(self, n_enc, n_input, n_z, dropout):
+    def __init__(self, n_enc, n_input, n_z, dropout=0.):
         super(DNN, self).__init__()
         self.fcn1 = nn.Linear(n_input, n_enc)
         self.fcn2 = nn.Linear(n_enc, n_z)
