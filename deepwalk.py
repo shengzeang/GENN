@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 import random
+import numpy as np
 import torch
 from gensim.models import Word2Vec
 
@@ -76,6 +77,6 @@ def deepwalk_train(G, window_size, walk_len, n_walks, n_z):
     embed = []
     for word in G.nodes():
         embed.append(dict[str(word)])
-    embed = torch.Tensor(embed)
+    embed = torch.Tensor(np.array(embed))
 
     return embed

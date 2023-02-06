@@ -5,35 +5,31 @@ This repository contains the official implementation of GENN.
 
 ## Requirements
 
-To install requirements:
+To install the requirements:
 
 ```setup
 pip install -r requirements.txt
 ```
 
 
-## Training
+## Running
 
-To train GENN-Augmented:
-
-```
-python train.py --augmented
-```
-
-To train GENN:
+To run GENN-Augmented:
 
 ```
 python train.py
+```
+
+To run GENN:
+
+```
+python train.py --augmented False
 ```
 
 
 
 ## Results
 
-  Evaluation results on the clustering task:
+  Evaluation results on the attributed graph clustering task:
 
 <img src="./cluster_performance.png" style="zoom:80%;" />
-
-Evaluation results on the link prediction task:
-
-<img src="./link_performance.png" style="zoom:80%;" />
