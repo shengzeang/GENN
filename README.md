@@ -1,6 +1,6 @@
 # GENN, Graph-Enforced Neural Network for Attributed Graph Clustering
 
-This repository contains the official implementation of GENN. 
+This repository contains the implementation of GENN. 
 
 
 ## Requirements
@@ -14,16 +14,16 @@ pip install -r requirements.txt
 
 ## Running
 
-To run GENN-Augmented:
+To run GENN-Augmented on Cora:
 
 ```
 python train.py
 ```
 
-To run GENN:
+To run GENN on Cora:
 
 ```
-python train.py --augmented False
+python train.py --augmented 0 --lr 5e-3
 ```
 
 

@@ -4,7 +4,6 @@ from sklearn.cluster import KMeans
 import torch
 import torch.nn.functional as F
 from torch.optim import Adam
-from networkx.algorithms.shortest_paths.unweighted import all_pairs_shortest_path_length
 from utils import *
 from model import *
 from deepwalk import *
@@ -24,7 +23,7 @@ parser.add_argument('--k', type=int, default=5, help='the depth of high-order st
 parser.add_argument('--embedDim', type=int, default=64, help='Dim of embedding.')
 parser.add_argument('--hiddenDim', type=int, default=256, help='Dim of hidden layer.')
 parser.add_argument('--dataset', type=str, default='cora', help='type of dataset.')
-parser.add_argument('--augmented', type=bool, default=True, help='use deepwalk or not.')
+parser.add_argument('--augmented', type=int, default=1, help='use deepwalk or not.')
 parser.add_argument('--device', type=int, default=0, help='train on which gpu.')
 args = parser.parse_args()
 
@@ -38,6 +37,7 @@ n_node, n_input = data.shape[0], data.shape[1]
 n_clusters = (y.max() + 1).item()
 
 if args.augmented:
+    print("Using DeepWalk augmentation")
     window_size, walk_len, n_walks = 5, 10, 10
     embed_dw = deepwalk_train(graph, window_size, walk_len, n_walks, args.embedDim).to(device)
 
